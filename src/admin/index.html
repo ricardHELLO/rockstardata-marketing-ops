@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RockstarData — Marketing Ops Admin</title>
+  <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+  <header>
+    <h1>RockstarData Marketing Ops</h1>
+    <nav>
+      <button class="tab active" data-tab="approvals">Approvals</button>
+      <button class="tab" data-tab="leads">Leads</button>
+      <button class="tab" data-tab="logs">Logs</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Approvals Tab -->
+    <section id="tab-approvals" class="tab-content active">
+      <div class="toolbar">
+        <label>Status:
+          <select id="approval-status-filter">
+            <option value="">All</option>
+            <option value="pending" selected>Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </label>
+        <button id="refresh-approvals" class="btn-secondary">Refresh</button>
+      </div>
+      <div id="approvals-table-wrap">
+        <table id="approvals-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Type</th>
+              <th>Agent</th>
+              <th>Summary</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Requested</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Leads Tab -->
+    <section id="tab-leads" class="tab-content">
+      <div class="toolbar">
+        <label>Status:
+          <select id="lead-status-filter">
+            <option value="">All</option>
+            <option value="net_new">Net New</option>
+            <option value="new_contact_existing_org">New Contact (Existing Org)</option>
+            <option value="existing_contact">Existing Contact</option>
+            <option value="in_crm">In CRM</option>
+            <option value="blacklisted">Blacklisted</option>
+          </select>
+        </label>
+        <button id="refresh-leads" class="btn-secondary">Refresh</button>
+      </div>
+      <div id="leads-table-wrap">
+        <table id="leads-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Company</th>
+              <th>Source</th>
+              <th>Status</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Logs Tab -->
+    <section id="tab-logs" class="tab-content">
+      <div class="toolbar">
+        <label>Agent:
+          <input type="text" id="log-agent-filter" placeholder="Filter by agent...">
+        </label>
+        <button id="refresh-logs" class="btn-secondary">Refresh</button>
+      </div>
+      <div id="logs-table-wrap">
+        <table id="logs-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Level</th>
+              <th>Agent</th>
+              <th>Action</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Approval Detail Modal -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modal-title">Approval Detail</h2>
+        <button id="modal-close" class="btn-close">&times;</button>
+      </div>
+      <div id="modal-body" class="modal-body"></div>
+      <div id="modal-actions" class="modal-actions"></div>
+    </div>
+  </div>
+
+  <script src="/admin/admin.js"></script>
+</body>
+</html>
