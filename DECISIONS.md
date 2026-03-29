@@ -89,3 +89,18 @@
 **Decision:** The Instantly service stores draft payloads in `agent_logs` instead of calling the Instantly API.
 
 **Reason:** Instantly integration is V2 scope. Storing drafts preserves the agent's work and creates an audit trail that can be replayed when the integration is activated.
+
+---
+
+## Decision 11: Paperclip must NOT be started from the project directory
+
+**Decision:** Always start Paperclip from `~` (home directory) or with `DATABASE_URL=""` explicitly unset.
+
+**Reason:** Paperclip loads `.env` from the current working directory via dotenv. If started from the project root, it picks up `DATABASE_URL=localhost:5433` (marketing-ops PostgreSQL) and tries to connect to it instead of its own embedded PostgreSQL on port 54329, causing startup to fail with an `AggregateError`.
+
+**How to start Paperclip correctly:**
+```bash
+cd ~ && DATABASE_URL="" npx paperclipai run
+```
+
+**Alternatives discarded:** Renaming the project `.env` (breaks our backend), using a separate `.env.paperclip` (Paperclip doesn't support custom env file paths in this version).
