@@ -1,0 +1,5 @@
+{
+  "build_command": "npm run build",
+  "start_command": "node dist/migrate.js && node dist/index.js",
+  "node_version": "22"
+}

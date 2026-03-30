@@ -10,7 +10,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction): 
 
     logger[level]({
       method: req.method,
-      path: req.path,
+      path: req.originalUrl.split('?')[0],
       status: res.statusCode,
       duration_ms: duration,
     });

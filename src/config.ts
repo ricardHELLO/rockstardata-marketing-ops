@@ -48,6 +48,11 @@ export const config = Object.freeze({
     apiKey: optional('INSTANTLY_API_KEY', ''),
   },
 
+  bettercontact: {
+    apiKey: optional('BETTERCONTACT_API_KEY', ''),
+    baseUrl: 'https://app.bettercontact.rocks/api/v2',
+  },
+
   adminPassword: optional('ADMIN_PASSWORD', 'admin'),
 
   isDev: optional('NODE_ENV', 'development') === 'development',

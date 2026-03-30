@@ -1,5 +1,4 @@
 import { Router, Request, Response } from 'express';
-import express from 'express';
 import { asyncHandler, AppError } from '../lib/errors';
 import { logger } from '../lib/logger';
 import { sendApprovalNotification, verifyAndParseWebhook, updateApprovalMessage } from '../services/slack.service';
@@ -31,15 +30,12 @@ router.post(
 );
 
 // POST /api/slack/webhook — receive interactive button clicks from Slack
-// This endpoint needs raw body for signature verification
+// Raw body is captured by the global express.json verify callback so that
+// HMAC signature verification has access to the original bytes.
 router.post(
   '/slack/webhook',
-  express.urlencoded({ extended: false }),
   asyncHandler(async (req: Request, res: Response) => {
-    // Reconstruct raw body from parsed payload
-    const rawBody = typeof req.body === 'string'
-      ? req.body
-      : `payload=${encodeURIComponent(typeof req.body.payload === 'string' ? req.body.payload : JSON.stringify(req.body))}`;
+    const rawBody = (req as Request & { rawBody?: string }).rawBody ?? '';
 
     const result = verifyAndParseWebhook(rawBody, {
       'x-slack-signature': req.headers['x-slack-signature'] as string,

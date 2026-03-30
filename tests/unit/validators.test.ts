@@ -179,3 +179,69 @@ describe('createLogSchema', () => {
     expect(result.cost_cents).toBe(3);
   });
 });
+
+import { createLeadInPipedriveSchema } from '../../src/validators/pipedrive.validator';
+
+describe('createLeadInPipedriveSchema', () => {
+  it('accepts valid minimal payload (name, email, company)', () => {
+    const result = createLeadInPipedriveSchema.parse({
+      name: 'Juan García',
+      email: 'Juan@Tragaluz.com',
+      company: 'Grupo Tragaluz',
+    });
+    expect(result.name).toBe('Juan García');
+    expect(result.email).toBe('juan@tragaluz.com'); // lowercased
+    expect(result.company).toBe('Grupo Tragaluz');
+  });
+
+  it('accepts full payload with all optional fields', () => {
+    const result = createLeadInPipedriveSchema.parse({
+      name: 'Ana López',
+      email: 'ana@empresa.es',
+      company: 'Empresa SL',
+      phone: '+34 600 000 000',
+      source: 'linkedin',
+      campaign: 'QSR_MADRID',
+      num_locations: 5,
+      concept_type: 'casual_dining',
+      pos: 'CEGID',
+      cargo: 'CEO',
+      linkedin_url: 'https://linkedin.com/in/ana',
+      existing_org_id: 42,
+    });
+    expect(result.num_locations).toBe(5);
+    expect(result.existing_org_id).toBe(42);
+  });
+
+  it('rejects missing required fields', () => {
+    expect(() => createLeadInPipedriveSchema.parse({ name: 'Test' })).toThrow();
+  });
+
+  it('rejects invalid email', () => {
+    expect(() =>
+      createLeadInPipedriveSchema.parse({ name: 'Test', email: 'not-an-email', company: 'Co' })
+    ).toThrow();
+  });
+
+  it('rejects non-positive num_locations', () => {
+    expect(() =>
+      createLeadInPipedriveSchema.parse({
+        name: 'Test',
+        email: 'a@b.com',
+        company: 'Co',
+        num_locations: 0,
+      })
+    ).toThrow();
+  });
+
+  it('rejects invalid linkedin_url', () => {
+    expect(() =>
+      createLeadInPipedriveSchema.parse({
+        name: 'Test',
+        email: 'a@b.com',
+        company: 'Co',
+        linkedin_url: 'not-a-url',
+      })
+    ).toThrow();
+  });
+});

@@ -147,7 +147,6 @@ export async function getOpenDeals(orgId: number): Promise<{ id: number; title: 
 export interface CreateOrgPayload {
   name: string;
   owner_id?: number;
-  custom_fields?: Record<string, unknown>;
 }
 
 export async function createOrganization(payload: CreateOrgPayload): Promise<{ id: number; name: string }> {
@@ -158,26 +157,6 @@ export async function createOrganization(payload: CreateOrgPayload): Promise<{ i
     name: payload.name,
     owner_id: payload.owner_id || config.pipedrive.ownerId || undefined,
   };
-
-  // Map custom fields if field IDs are configured
-  if (payload.custom_fields) {
-    const fields = config.pipedrive.fields;
-    if (fields.numLocations && payload.custom_fields.num_locations != null) {
-      body[fields.numLocations] = payload.custom_fields.num_locations;
-    }
-    if (fields.conceptType && payload.custom_fields.concept_type) {
-      body[fields.conceptType] = payload.custom_fields.concept_type;
-    }
-    if (fields.pos && payload.custom_fields.pos) {
-      body[fields.pos] = payload.custom_fields.pos;
-    }
-    if (fields.source && payload.custom_fields.source) {
-      body[fields.source] = payload.custom_fields.source;
-    }
-    if (fields.campaign && payload.custom_fields.campaign) {
-      body[fields.campaign] = payload.custom_fields.campaign;
-    }
-  }
 
   const { data } = await getClient().post('/organizations', body);
   logger.info({ org_id: data.data.id, name: payload.name }, 'Pipedrive organization created');
@@ -213,6 +192,9 @@ export async function createPerson(payload: CreatePersonPayload): Promise<{ id: 
     if (fields.linkedinUrl && payload.custom_fields.linkedin_url) {
       body[fields.linkedinUrl] = payload.custom_fields.linkedin_url;
     }
+    if (fields.campaign && payload.custom_fields.campaign) {
+      body[fields.campaign] = payload.custom_fields.campaign;
+    }
   }
 
   const { data } = await getClient().post('/persons', body);
@@ -226,6 +208,7 @@ export interface CreateDealPayload {
   person_id?: number;
   pipeline_id?: number;
   owner_id?: number;
+  custom_fields?: Record<string, unknown>;
 }
 
 export async function createDeal(payload: CreateDealPayload): Promise<{ id: number; title: string }> {
@@ -237,8 +220,24 @@ export async function createDeal(payload: CreateDealPayload): Promise<{ id: numb
     org_id: payload.org_id || undefined,
     person_id: payload.person_id || undefined,
     pipeline_id: payload.pipeline_id || config.pipedrive.pipelineId || undefined,
-    owner_id: payload.owner_id || config.pipedrive.ownerId || undefined,
+    user_id: payload.owner_id || config.pipedrive.ownerId || undefined,
   };
+
+  if (payload.custom_fields) {
+    const fields = config.pipedrive.fields;
+    if (fields.source && payload.custom_fields.source) {
+      body[fields.source] = payload.custom_fields.source;
+    }
+    if (fields.numLocations && payload.custom_fields.num_locations != null) {
+      body[fields.numLocations] = payload.custom_fields.num_locations;
+    }
+    if (fields.conceptType && payload.custom_fields.concept_type) {
+      body[fields.conceptType] = payload.custom_fields.concept_type;
+    }
+    if (fields.pos && payload.custom_fields.pos) {
+      body[fields.pos] = payload.custom_fields.pos;
+    }
+  }
 
   const { data } = await getClient().post('/deals', body);
   logger.info({ deal_id: data.data.id, title: payload.title }, 'Pipedrive deal created');
@@ -280,16 +279,7 @@ export async function createLeadInPipedrive(payload: {
   // Step 1: Create or reuse org
   let orgId = payload.existing_org_id;
   if (!orgId) {
-    const org = await createOrganization({
-      name: payload.company,
-      custom_fields: {
-        num_locations: payload.num_locations,
-        concept_type: payload.concept_type,
-        pos: payload.pos,
-        source: payload.source,
-        campaign: payload.campaign,
-      },
-    });
+    const org = await createOrganization({ name: payload.company });
     orgId = org.id;
   }
 
@@ -302,14 +292,21 @@ export async function createLeadInPipedrive(payload: {
     custom_fields: {
       cargo: payload.cargo,
       linkedin_url: payload.linkedin_url,
+      campaign: payload.campaign,
     },
   });
 
-  // Step 3: Create deal
+  // Step 3: Create deal with deal-level custom fields
   const deal = await createDeal({
     title: `${payload.company} — ${payload.source || 'Marketing Ops'}`,
     org_id: orgId,
     person_id: person.id,
+    custom_fields: {
+      source: payload.source,
+      num_locations: payload.num_locations,
+      concept_type: payload.concept_type,
+      pos: payload.pos,
+    },
   });
 
   // Step 4: Add audit note

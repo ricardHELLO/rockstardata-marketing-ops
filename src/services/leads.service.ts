@@ -54,7 +54,7 @@ export function normalizeLead(contact: LeadContact): NormalizedLead {
 // In Phase B, dedup runs against our own DB.
 // In Phase C, it will also query Pipedrive.
 
-async function dedupLead(normalized: NormalizedLead): Promise<DedupResult> {
+export async function dedupLead(normalized: NormalizedLead): Promise<DedupResult> {
   const result: DedupResult = {
     person_found: false,
     org_found: false,

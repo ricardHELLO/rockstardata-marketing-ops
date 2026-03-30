@@ -6,6 +6,7 @@ import {
   searchOrgByName,
   createLeadInPipedrive,
 } from '../services/pipedrive.service';
+import { createLeadInPipedriveSchema } from '../validators/pipedrive.validator';
 
 const router = Router();
 
@@ -37,7 +38,8 @@ router.get(
 router.post(
   '/pipedrive/create',
   asyncHandler(async (req, res) => {
-    const result = await createLeadInPipedrive(req.body);
+    const validated = createLeadInPipedriveSchema.parse(req.body);
+    const result = await createLeadInPipedrive(validated);
     res.status(201).json({ ok: true, data: result });
   })
 );

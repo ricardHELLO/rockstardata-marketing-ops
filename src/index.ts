@@ -24,7 +24,19 @@ const app = express();
 // Global middleware
 app.use(helmet());
 app.use(cors());
-app.use(express.json({ limit: '1mb' }));
+// Capture raw body for HMAC signature verification (Slack, Stripe, etc.)
+app.use(express.json({
+  limit: '1mb',
+  verify: (req: express.Request & { rawBody?: string }, _res, buf) => {
+    req.rawBody = buf.toString('utf8');
+  },
+}));
+app.use(express.urlencoded({
+  extended: false,
+  verify: (req: express.Request & { rawBody?: string }, _res, buf) => {
+    req.rawBody = buf.toString('utf8');
+  },
+}));
 app.use(requestLogger);
 
 // Public routes (no auth)
@@ -33,13 +45,15 @@ app.use(healthRoutes);
 // Admin panel (basic auth)
 app.use(adminRoutes);
 
+// Slack routes — public (webhook uses Slack HMAC, notify is internal-only network)
+app.use('/api', slackRoutes);
+
 // API routes (internal auth required)
 app.use('/api', internalAuth);
 app.use('/api', leadsRoutes);
 app.use('/api', approvalsRoutes);
 app.use('/api', logsRoutes);
 app.use('/api', pipedriveRoutes);
-app.use('/api', slackRoutes);
 app.use('/api', instantlyRoutes);
 
 // Zod validation errors → 400

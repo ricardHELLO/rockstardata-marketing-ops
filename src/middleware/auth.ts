@@ -7,14 +7,14 @@ export function internalAuth(req: Request, _res: Response, next: NextFunction): 
   const apiKey = req.headers['x-api-key'] as string | undefined;
 
   if (!apiKey) {
-    throw AppError.unauthorized('Missing x-api-key header');
+    return next(AppError.unauthorized('Missing x-api-key header'));
   }
 
   const expected = Buffer.from(config.internalApiKey);
   const received = Buffer.from(apiKey);
 
   if (expected.length !== received.length || !timingSafeEqual(expected, received)) {
-    throw AppError.unauthorized('Invalid API key');
+    return next(AppError.unauthorized('Invalid API key'));
   }
 
   next();
@@ -39,5 +39,5 @@ export function adminAuth(req: Request, _res: Response, next: NextFunction): voi
     return next();
   }
 
-  throw AppError.unauthorized('Admin access required');
+  return next(AppError.unauthorized('Admin access required'));
 }

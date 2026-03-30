@@ -111,7 +111,11 @@ async function executeApprovedAction(approval: ApprovalRecord): Promise<void> {
   try {
     switch (approval.action_type) {
       case 'create_in_pipedrive': {
-        const payload = approval.payload_after as Record<string, unknown>;
+        const outer = approval.payload_after as Record<string, unknown>;
+        // payload_after is { normalized: {...}, dedup_result: {...} } when coming from leads.service
+        // or a flat object when created directly via the API
+        const payload = (outer.normalized as Record<string, unknown>) ?? outer;
+        const dedupResult = (outer.dedup_result as Record<string, unknown>) ?? {};
 
         if (!config.pipedrive.apiToken) {
           logger.info({ approval_id: approval.id }, 'Pipedrive not configured — skipping execution, marking as executed');
@@ -134,7 +138,7 @@ async function executeApprovedAction(approval: ApprovalRecord): Promise<void> {
           pos: payload.pos ? String(payload.pos) : undefined,
           cargo: payload.cargo ? String(payload.cargo) : undefined,
           linkedin_url: payload.linkedin_url ? String(payload.linkedin_url) : undefined,
-          existing_org_id: payload.existing_org_id as number | undefined,
+          existing_org_id: (dedupResult.pipedrive_org_id as number) ?? undefined,
         });
 
         // Update linked lead with Pipedrive IDs
